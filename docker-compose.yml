@@ -1,0 +1,37 @@
+version: '3.8'
+
+services:
+  cast:
+    image: cast:latest
+    build: .
+    container_name: cast
+    restart: unless-stopped
+    ports:
+      - "3001:3001"
+    environment:
+      NODE_ENV: production
+      PORT: 3001
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET is required}
+      DB_PATH: /app/backend/data/cast.db
+      STARKNET_RPC_URL: ${STARKNET_RPC_URL:-https://starknet-mainnet.public.blastapi.io}
+      STARKNET_CHAIN_ID: ${STARKNET_CHAIN_ID:-SN_MAIN}
+      STARKNET_PAYMENT_CONTRACT: ${STARKNET_PAYMENT_CONTRACT:-}
+      STARKNET_USDC_ADDRESS: ${STARKNET_USDC_ADDRESS:-0x053c91253bc9682c04929ca02ed00b3e423f6710d2ee7e0d5ebb06f3ecf368a8}
+      STARKNET_SIGNER_ADDRESS: ${STARKNET_SIGNER_ADDRESS:-}
+      STARKNET_SIGNER_PRIVATE_KEY: ${STARKNET_SIGNER_PRIVATE_KEY:-}
+      STARKNET_PAYMASTER_ENABLED: ${STARKNET_PAYMASTER_ENABLED:-false}
+      BASE_RPC_URL: ${BASE_RPC_URL:-https://mainnet.base.org}
+      BASE_RECIPIENT_ADDRESS: ${BASE_RECIPIENT_ADDRESS:-}
+      CORS_ORIGIN: ${CORS_ORIGIN:-*}
+    volumes:
+      - cast-data:/app/backend/data
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3001/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+volumes:
+  cast-data:
+    driver: local

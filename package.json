@@ -1,0 +1,22 @@
+{
+  "name": "cast",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Cast — Instant API creation and monetization for the AI agent economy",
+  "scripts": {
+    "setup": "bash setup.sh",
+    "dev": "concurrently -n backend,frontend -c cyan,magenta \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev:backend": "cd backend && npm run dev",
+    "dev:frontend": "cd frontend && npm run dev",
+    "build": "cd frontend && npm run build",
+    "start": "cd backend && npm start",
+    "test": "cd backend && node run-tests.js",
+    "lint": "cd frontend && npx eslint src --ext .jsx,.js --max-warnings 0"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
