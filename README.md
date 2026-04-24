@@ -1,15 +1,4 @@
-
-
----
- README.md | 253 +++++++-----------------------------------------------
- 1 file changed, 30 insertions(+), 223 deletions(-)
-
-diff --git a/README.md b/README.md
-index 7047c1e..4ec3aac 100644
---- a/README.md
-+++ b/README.md
-@@ -4,35 +4,21 @@
- 
+README
  Describe any API in one sentence. Cast generates a production-ready endpoint and deploys it at a unique URL in under 5 seconds. Every call settles a **$0.001 micropayment via the x402 protocol** — on-chain, with no API keys, no accounts, and no billing dashboards for callers.
  
 -Cast is chain-agnostic by design. The payment layer is built around a `PaymentVerifier` interface — any chain plugs in as an adapter. Currently supported: **Solana (AUDD)**, **Base (USDC)**, and **X1 EcoChain (USDT)**.
