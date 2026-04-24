@@ -1,12 +1,3 @@
-
- README.md | 222 ++++++++++++++++++++++++++++--------------------------
- 1 file changed, 116 insertions(+), 106 deletions(-)
-
-diff --git a/README.md b/README.md
-index 5d0a062..7047c1e 100644
---- a/README.md
-+++ b/README.md
-@@ -1,10 +1,10 @@
  # Cast
  
 -**Instant API creation and monetization for the AI agent economy, settled in AUDD on Solana.**
