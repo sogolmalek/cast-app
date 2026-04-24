@@ -16,4 +16,6 @@ Thumbs.db
 .idea/
 *.swp
 backend/test-db.js
-contracts/starknet/target/
+contracts/solana/target/
+contracts/solana/.anchor/
+contracts/solana/test-ledger/

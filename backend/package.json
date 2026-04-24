@@ -17,7 +17,10 @@
     "jsonwebtoken": "^9.0.2",
     "nanoid": "^5.0.7",
     "sql.js": "^1.12.0",
-    "starknet": "^6.17.0",
+    "@solana/web3.js": "^1.95.3",
+    "@solana/spl-token": "^0.4.8",
+    "tweetnacl": "^1.0.3",
+    "bs58": "^6.0.0",
     "ethers": "^6.13.4",
     "uuid": "^10.0.0",
     "zod": "^3.23.8"

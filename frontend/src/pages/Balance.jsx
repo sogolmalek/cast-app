@@ -8,7 +8,7 @@ export default function Balance() {
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showWithdraw, setShowWithdraw] = useState(false);
-  const [withdrawForm, setWithdrawForm] = useState({ chain: 'starknet', amount: '', address: '' });
+  const [withdrawForm, setWithdrawForm] = useState({ chain: 'solana', amount: '', address: '' });
   const [withdrawing, setWithdrawing] = useState(false);
   const [error, setError] = useState('');
 
@@ -37,7 +37,7 @@ export default function Balance() {
       });
       setWithdrawals(prev => [data.withdrawal, ...prev]);
       setShowWithdraw(false);
-      setWithdrawForm({ chain: 'starknet', amount: '', address: '' });
+      setWithdrawForm({ chain: 'solana', amount: '', address: '' });
       // Refresh balance
       const b = await api.getBalance();
       setBalance(b);
@@ -101,12 +101,13 @@ export default function Balance() {
                 <label className="block text-sm text-gray-400 mb-1.5">Chain</label>
                 <select value={withdrawForm.chain} onChange={e => setWithdrawForm(p => ({ ...p, chain: e.target.value }))}
                   className="input-field w-full">
-                  <option value="starknet">Starknet</option>
-                  <option value="base">Base</option>
+                  <option value="solana">Solana (AUDD)</option>
+                  <option value="base">Base (USDC)</option>
+                  <option value="x1ecochain">X1 EcoChain (USDT)</option>
                 </select>
               </div>
               <div>
-                <label className="block text-sm text-gray-400 mb-1.5">Amount (USDC)</label>
+                <label className="block text-sm text-gray-400 mb-1.5">Amount</label>
                 <input type="number" step="0.0001" min="0.10" value={withdrawForm.amount}
                   onChange={e => setWithdrawForm(p => ({ ...p, amount: e.target.value }))}
                   className="input-field w-full" placeholder="0.00" required />
@@ -114,7 +115,7 @@ export default function Balance() {
               <div>
                 <label className="block text-sm text-gray-400 mb-1.5">Destination address</label>
                 <input value={withdrawForm.address} onChange={e => setWithdrawForm(p => ({ ...p, address: e.target.value }))}
-                  className="input-field w-full font-mono text-xs" placeholder="0x..." required />
+                  className="input-field w-full font-mono text-xs" placeholder="Solana / 0x…" required />
               </div>
             </div>
             <button type="submit" disabled={withdrawing} className="btn-primary text-sm">

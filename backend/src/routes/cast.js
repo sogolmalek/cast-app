@@ -3,7 +3,6 @@ import db from '../db.js';
 import { x402Gate, logCall } from '../middleware/x402.js';
 import { executeEndpoint, validateInput } from '../services/runtime.js';
 import { listChains, getVerifier } from '../adapters/index.js';
-import { buildPaymentTypedData, usdcToUint256 } from '../adapters/starknet-constants.js';
 import rateLimit from 'express-rate-limit';
 import { config } from '../config.js';
 
@@ -32,8 +31,8 @@ router.get('/', (req, res) => {
     supportedChains: listChains(),
     payment: {
       protocol: 'x402',
-      currency: 'USDC',
-      defaultPrice: '$0.001 per call',
+      currency: 'AUDD',
+      defaultPrice: '$0.001 per call (settled in AUDD, USDC, or USDT depending on chain)',
     },
     endpoints: endpoints.map(e => ({
       url: `/cast/${e.slug}`,
@@ -67,8 +66,10 @@ router.get('/chains', (req, res) => {
   });
 });
 
-// GET /cast/chains/starknet/typed-data/:slug — SNIP-12 typed data template for off-chain signing
-router.get('/chains/starknet/typed-data/:slug', (req, res) => {
+// GET /cast/chains/solana/payment-intent/:slug — Payment intent template for Solana callers
+// Returns everything a caller needs to build and sign an AUDD transfer:
+// mint, recipient ATA owner, amount, and the exact X-Payment payload to send back.
+router.get('/chains/solana/payment-intent/:slug', (req, res) => {
   try {
     const endpoint = db.prepare(`
       SELECT slug, price_per_call FROM endpoints WHERE slug = ? AND status = 'active'
@@ -76,48 +77,41 @@ router.get('/chains/starknet/typed-data/:slug', (req, res) => {
 
     if (!endpoint) return res.status(404).json({ error: 'Endpoint not found' });
 
-    const verifier = getVerifier('starknet');
-    const amountUint256 = usdcToUint256(endpoint.price_per_call);
-    const paymentContract = config.starknet.paymentContractAddress || '0x0000000000000000000000000000000000000000000000000000000000000000';
+    const verifier = getVerifier('solana');
+    const meta = verifier.getPaymentMeta();
+    const amountSmallestUnit = String(Math.round(endpoint.price_per_call * 10 ** (meta.auddDecimals || 6)));
 
     res.json({
-      description: 'Sign this SNIP-12 message with your Starknet wallet to authorize payment',
+      description: 'Build an AUDD transfer on Solana that matches this intent, then submit its signature in the X-Payment header',
       instructions: [
-        '1. Replace PLACEHOLDER values (endpoint_id, your address, nonce, deadline)',
-        '2. Sign with your wallet (ArgentX, Braavos, etc.)',
-        '3. Send the signature in the X-Payment header as signed authorization JSON',
+        '1. Transfer AUDD (SPL token) from your wallet to the recipient below',
+        '2. Wait for the transaction to be confirmed',
+        '3. Base64-encode the payment JSON below with your tx signature and send it as X-Payment',
       ],
-      typedData: buildPaymentTypedData(
-        config.starknet.chainId || 'SN_MAIN',
-        paymentContract,
-        {
-          endpointId: 'PLACEHOLDER_ENDPOINT_ID',
-          creator: verifier.getRecipientAddress() || paymentContract,
-          amountLow: amountUint256.low,
-          amountHigh: amountUint256.high,
-          nonce: 'PLACEHOLDER_UNIQUE_NONCE',
-          deadline: 'PLACEHOLDER_UNIX_TIMESTAMP',
-        },
-      ),
+      intent: {
+        chain: 'solana',
+        network: meta.network,
+        auddMint: meta.auddMint,
+        auddDecimals: meta.auddDecimals,
+        recipient: verifier.getRecipientAddress(),
+        amount: amountSmallestUnit,
+        amountUi: endpoint.price_per_call,
+        currency: 'AUDD',
+      },
       paymentHeader: {
         format: 'base64 encoded JSON',
         example: {
-          chain: 'starknet',
-          proof: JSON.stringify({
-            signature: ['0x...r', '0x...s'],
-            endpointId: 'PLACEHOLDER',
-            creator: paymentContract,
-            deadline: String(Math.floor(Date.now() / 1000) + 3600),
-          }),
-          payer: '0x_your_wallet_address',
-          amount: String(Math.round(endpoint.price_per_call * 1_000_000)),
-          nonce: 'unique_nonce_here',
+          chain: 'solana',
+          proof: '<base58 tx signature of your confirmed AUDD transfer>',
+          payer: '<your Solana wallet address>',
+          amount: amountSmallestUnit,
+          nonce: '<unique nonce string>',
         },
       },
     });
   } catch (err) {
-    console.error('[cast/chains/starknet/typed-data]', err.message);
-    res.status(500).json({ error: 'Failed to generate typed data', details: err.message });
+    console.error('[cast/chains/solana/payment-intent]', err.message);
+    res.status(500).json({ error: 'Failed to generate payment intent', details: err.message });
   }
 });
 
@@ -142,7 +136,7 @@ router.get('/:slug', (req, res) => {
     title: endpoint.title,
     description: endpoint.description,
     pricePerCall: endpoint.price_per_call,
-    currency: 'USDC',
+    currency: 'AUDD',
     totalCalls: endpoint.total_calls,
     inputSchema: JSON.parse(endpoint.input_schema || '{}'),
     outputSchema: JSON.parse(endpoint.output_schema || '{}'),
@@ -157,9 +151,9 @@ router.get('/:slug', (req, res) => {
     paymentExample: {
       description: 'Base64 encode this JSON as the X-Payment header',
       payload: {
-        chain: 'starknet',
-        proof: '<transaction hash or signed payload>',
-        payer: '<your wallet address>',
+        chain: 'solana',
+        proof: '<base58 tx signature of your confirmed AUDD transfer>',
+        payer: '<your Solana wallet address>',
         amount: String(Math.round(endpoint.price_per_call * 1_000_000)),
         nonce: '<unique nonce>',
       },
