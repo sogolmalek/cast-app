@@ -130,9 +130,9 @@ async function t09() {
 
 async function t10() {
   const { status, data } = await req('/cast/chains');
-  const hasStarknet = data.supported?.some(c => c.chainId === 'starknet');
+  const hasSolana = data.supported?.some(c => c.chainId === 'solana');
   const hasBase = data.supported?.some(c => c.chainId === 'base');
-  log('GET /cast/chains', status === 200 && hasStarknet && hasBase,
+  log('GET /cast/chains', status === 200 && hasSolana && hasBase,
     data.supported?.map(c => c.chainId).join(', '));
 }
 
@@ -265,10 +265,10 @@ async function t24() {
 }
 
 async function t25() {
-  // Starknet typed data endpoint
-  const { status, data } = await req(`/cast/chains/starknet/typed-data/${slug}`);
-  log('Starknet typed-data template', status === 200 && !!data.typedData,
-    data.typedData?.primaryType);
+  // Solana payment intent endpoint
+  const { status, data } = await req(`/cast/chains/solana/payment-intent/${slug}`);
+  log('Solana payment-intent template', status === 200 && !!data.intent,
+    `${data.intent?.currency} on ${data.intent?.network}`);
 }
 
 // ── Run ──
@@ -286,7 +286,7 @@ const groups = [
   ['Runtime Execution',  [t12, t13, t14, t15]],
   ['Balance & Earnings', [t16, t17, t20]],
   ['Pause / Reactivate', [t18]],
-  ['Starknet',           [t25]],
+  ['Solana',             [t25]],
   ['Misc',               [t19]],
 ];
 

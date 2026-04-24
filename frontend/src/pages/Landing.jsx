@@ -51,7 +51,7 @@ export default function Landing() {
           {[
             { icon: Code, title: 'Describe', desc: 'Tell Cast what API you need in plain English. Iterate until it\'s right.' },
             { icon: Globe, title: 'Deploy', desc: 'Cast generates production-ready code with validation, error handling, and deploys instantly.' },
-            { icon: DollarSign, title: 'Earn', desc: 'Every call pays $0.001 USDC via x402. Settle on Starknet, Base, or any EVM chain.' },
+            { icon: DollarSign, title: 'Earn', desc: 'Every call pays $0.001 via x402. Settle in AUDD on Solana, USDC on Base, or USDT on X1.' },
           ].map(({ icon: Icon, title, desc }) => (
             <div key={title} className="card p-6 hover:border-white/10 transition-all">
               <div className="w-10 h-10 rounded-lg bg-cast-600/15 flex items-center justify-center mb-4">
@@ -81,9 +81,9 @@ export default function Landing() {
         <p className="text-sm text-gray-500 mb-6">Settle on your chain</p>
         <div className="flex items-center justify-center gap-8 text-gray-400">
           <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-full bg-purple-500/20 border border-purple-500/30" />
-            <span className="text-sm font-medium">Starknet</span>
-            <span className="badge-green text-[10px]">Native AA</span>
+            <div className="w-6 h-6 rounded-full bg-emerald-500/20 border border-emerald-500/30" />
+            <span className="text-sm font-medium">Solana</span>
+            <span className="badge-green text-[10px]">AUDD</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-6 h-6 rounded-full bg-blue-500/20 border border-blue-500/30" />

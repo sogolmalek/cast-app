@@ -15,7 +15,7 @@ import { v4 as uuid } from 'uuid';
  * Payment header format:
  * X-Payment: <base64 encoded JSON>
  * {
- *   chain: "starknet" | "base" | "ethereum",
+ *   chain: "solana" | "base" | "x1ecochain",
  *   proof: "<chain-specific payment proof>",
  *   payer: "<address>",
  *   amount: "1000", // in smallest unit (e.g., 6 decimals for USDC = 0.001)
@@ -36,10 +36,10 @@ export async function x402Gate(req, res, next) {
         version: '1',
         accepts: config.payment.supportedChains.map(chain => ({
           chain,
-          currency: config.payment.currency,
-          amount: String(Math.round(endpoint.price_per_call * 1_000_000)), // USDC 6 decimals
+          currency: getVerifier(chain).getPaymentMeta().currency || 'AUDD',
+          amount: String(Math.round(endpoint.price_per_call * 1_000_000)), // 6 decimals (AUDD / USDC / USDT)
           recipient: getVerifier(chain).getRecipientAddress(),
-          network: chain === 'starknet' ? 'mainnet' : chain,
+          network: getVerifier(chain).getPaymentMeta().network || chain,
         })),
         description: endpoint.title,
         endpoint: `/cast/${endpoint.slug}`,
@@ -79,9 +79,10 @@ export async function x402Gate(req, res, next) {
     return res.status(409).json({ error: 'Payment nonce already used (replay detected)' });
   }
 
-  // Layer 2: On-chain nonce check for Starknet (non-fatal, 3s timeout)
+  // Layer 2: Optional on-chain nonce check (non-fatal, 3s timeout).
+  // Any verifier can implement isNonceUsed(nonce) to participate.
   const verifier = getVerifier(chain);
-  if (chain === 'starknet' && typeof verifier.isNonceUsed === 'function') {
+  if (typeof verifier.isNonceUsed === 'function') {
     try {
       const onChainUsed = await Promise.race([
         verifier.isNonceUsed(nonce),

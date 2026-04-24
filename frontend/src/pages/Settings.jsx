@@ -134,8 +134,9 @@ export default function Settings() {
         </div>
         <div className="p-5 space-y-3">
           {[
-            { name: 'Starknet', features: ['Native AA', 'Paymaster', 'STRK + ETH'], color: 'purple', native: true },
-            { name: 'Base', features: ['x402 original', 'EVM'], color: 'blue', native: false },
+            { name: 'Solana', features: ['AUDD', 'sub-second', 'sub-cent fees'], color: 'emerald', native: true },
+            { name: 'Base', features: ['USDC', 'x402 original', 'EVM'], color: 'blue', native: false },
+            { name: 'X1 EcoChain', features: ['USDT', 'DePIN', 'Web4'], color: 'amber', native: false },
           ].map(chain => (
             <div key={chain.name} className="flex items-center justify-between p-3 bg-surface-2 rounded-lg">
               <div className="flex items-center gap-3">

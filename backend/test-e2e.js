@@ -139,9 +139,9 @@ async function test09_docs() {
 
 async function test10_chains() {
   const { status, data } = await req('/cast/chains');
-  const hasStarknet = data.supported?.some(c => c.chainId === 'starknet');
+  const hasSolana = data.supported?.some(c => c.chainId === 'solana');
   const hasBase = data.supported?.some(c => c.chainId === 'base');
-  log('GET /cast/chains', status === 200 && hasStarknet && hasBase,
+  log('GET /cast/chains', status === 200 && hasSolana && hasBase,
     `${data.supported?.map(c => c.chainId).join(', ')}`);
 }
 

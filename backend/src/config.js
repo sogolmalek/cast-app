@@ -9,27 +9,28 @@ export const config = {
   // x402 payment config
   payment: {
     defaultPricePerCall: 0.001,
-    currency: 'USDC/USDT',
-    supportedChains: ['starknet', 'base', 'x1ecochain'],
-    defaultChain: 'starknet',
+    currency: 'AUDD',
+    supportedChains: ['solana', 'base', 'x1ecochain'],
+    defaultChain: 'solana',
   },
 
-  // Starknet config
-  starknet: {
-    rpcUrl: process.env.STARKNET_RPC_URL || 'https://starknet-mainnet.public.blastapi.io',
-    chainId: process.env.STARKNET_CHAIN_ID || 'SN_MAIN',
-    paymentContractAddress: process.env.STARKNET_PAYMENT_CONTRACT || '',
-    usdcAddress: process.env.STARKNET_USDC_ADDRESS || '0x053c91253bc9682c04929ca02ed00b3e423f6710d2ee7e0d5ebb06f3ecf368a8',
-    // Cast's server-side account for settlements and paymaster
-    signerAddress: process.env.STARKNET_SIGNER_ADDRESS || '',
-    signerPrivateKey: process.env.STARKNET_SIGNER_PRIVATE_KEY || '',
-    // Paymaster
-    paymasterEnabled: process.env.STARKNET_PAYMASTER_ENABLED === 'true',
-    maxGasSubsidyUsd: parseFloat(process.env.STARKNET_MAX_GAS_SUBSIDY || '0.0005'),
-    // Verification
-    receiptPollIntervalMs: 2000,
-    receiptPollMaxAttempts: 15,
-    acceptPendingTx: process.env.STARKNET_ACCEPT_PENDING === 'true',
+  // Solana / AUDD config
+  // AUDD is Australia's fully-backed digital dollar stablecoin, issued as an
+  // SPL token on Solana. 6 decimals per SPL convention.
+  // Mainnet RPC: https://api.mainnet-beta.solana.com
+  // Devnet RPC:  https://api.devnet.solana.com
+  solana: {
+    network: process.env.SOLANA_NETWORK || 'devnet',
+    rpcUrl: process.env.SOLANA_RPC_URL || 'https://api.devnet.solana.com',
+    commitment: process.env.SOLANA_COMMITMENT || 'confirmed',
+    // AUDD SPL mint address (set to the official AUDD mint for the chosen network)
+    auddMint: process.env.SOLANA_AUDD_MINT || '',
+    auddDecimals: parseInt(process.env.SOLANA_AUDD_DECIMALS || '6'),
+    // Cast's recipient wallet (receives AUDD from callers)
+    recipientAddress: process.env.SOLANA_RECIPIENT_ADDRESS || '',
+    // Server-side signer for settlements (base58 secret key, kept server-side)
+    signerSecret: process.env.SOLANA_SIGNER_SECRET || '',
+    explorerUrl: process.env.SOLANA_EXPLORER_URL || 'https://explorer.solana.com',
   },
 
   // Base config

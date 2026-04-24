@@ -123,12 +123,14 @@ export default function Studio() {
 
     // Build mock payment proof (in production this comes from caller's wallet)
     const nonce = 'cast_' + Math.random().toString(36).slice(2, 10);
-    const mockTxHash = '0x' + Array.from({ length: 63 }, () => '0123456789abcdef'[Math.floor(Math.random() * 16)]).join('');
+    // Base58-style mock Solana signature (87–88 chars)
+    const b58 = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
+    const mockTxHash = Array.from({ length: 88 }, () => b58[Math.floor(Math.random() * b58.length)]).join('');
 
     const paymentProof = {
-      chain: 'starknet',
+      chain: 'solana',
       proof: mockTxHash,
-      payer: '0x04d6f08a2b3e1c9d7f5a0e8b2c4d6e8f0a2b4c6d',
+      payer: 'CastP1ayerWa11etAddressDemoDemoDemoDemoDemo',
       amount: String(Math.round(deployed.pricePerCall * 1_000_000)),
       nonce,
     };
@@ -237,7 +239,7 @@ export default function Studio() {
                 <div>
                   <p className="text-base font-medium mb-1">Describe your API</p>
                   <p className="text-sm text-gray-500 max-w-xs leading-relaxed">
-                    One sentence. Cast generates a live, monetized endpoint with x402 payment on Starknet.
+                    One sentence. Cast generates a live, monetized endpoint with x402 payment in AUDD on Solana.
                   </p>
                 </div>
                 <div className="flex flex-col gap-2 w-full max-w-sm">
@@ -384,16 +386,16 @@ function MessageBubble({ msg, onCopy, copied, onTest, testInput, setTestInput, t
       <div className="animate-fade-in bg-amber-500/5 border border-amber-500/20 rounded-xl p-4 space-y-2 max-w-[90%]">
         <p className="text-xs font-mono text-amber-400">⬡ x402 request</p>
         <div className="space-y-1.5 text-[10px] font-mono text-gray-500">
-          <p><span className="text-gray-600">chain:</span> <span className="text-amber-300">starknet</span></p>
+          <p><span className="text-gray-600">chain:</span> <span className="text-amber-300">solana</span></p>
           <p><span className="text-gray-600">tx:</span> <span className="text-gray-400">{mockTxHash.slice(0, 20)}...</span></p>
-          <p><span className="text-gray-600">amount:</span> <span className="text-gray-400">{paymentProof.amount} USDC (6 dec)</span></p>
+          <p><span className="text-gray-600">amount:</span> <span className="text-gray-400">{paymentProof.amount} AUDD (6 dec)</span></p>
           <p><span className="text-gray-600">nonce:</span> <span className="text-gray-400">{paymentProof.nonce}</span></p>
         </div>
         <div className="bg-surface-3 rounded-lg px-3 py-1.5">
           <p className="text-[9px] font-mono text-gray-600 mb-1">X-Payment header (base64)</p>
           <p className="text-[9px] font-mono text-gray-500 break-all">{paymentHeader.slice(0, 60)}...</p>
         </div>
-        <p className="text-[10px] font-mono text-gray-600">verifying on Starknet... ACCEPTED_ON_L2 ✓</p>
+        <p className="text-[10px] font-mono text-gray-600">verifying on Solana... confirmed ✓</p>
       </div>
     );
   }
@@ -403,9 +405,9 @@ function MessageBubble({ msg, onCopy, copied, onTest, testInput, setTestInput, t
     return (
       <div className="animate-fade-in bg-emerald-500/5 border border-emerald-500/20 rounded-xl p-4 space-y-2 max-w-[90%]">
         <div className="flex items-center gap-2">
-          <p className="text-xs font-mono text-emerald-400">✓ settled on Starknet</p>
+          <p className="text-xs font-mono text-emerald-400">✓ settled on Solana</p>
         </div>
-        <p className="text-[10px] font-mono text-gray-600">creator credited +$0.001 USDC</p>
+        <p className="text-[10px] font-mono text-gray-600">creator credited +$0.001 AUDD</p>
         <pre className="bg-surface-3 rounded-lg px-3 py-2 text-[11px] font-mono text-gray-300 overflow-x-auto max-h-32">
           {JSON.stringify(result?.result || result, null, 2)}
         </pre>

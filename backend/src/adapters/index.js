@@ -1,4 +1,4 @@
-import { StarknetVerifier } from './StarknetVerifier.js';
+import { SolanaVerifier } from './SolanaVerifier.js';
 import { BaseVerifier } from './BaseVerifier.js';
 import { X1EcoChainVerifier } from './X1EcoChainVerifier.js';
 
@@ -14,7 +14,7 @@ import { X1EcoChainVerifier } from './X1EcoChainVerifier.js';
 const verifiers = new Map();
 
 // Register built-in verifiers
-verifiers.set('starknet', new StarknetVerifier());
+verifiers.set('solana', new SolanaVerifier());
 verifiers.set('base', new BaseVerifier());
 verifiers.set('x1ecochain', new X1EcoChainVerifier());
 
