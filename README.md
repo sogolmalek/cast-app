@@ -35,11 +35,6 @@ For creators: sign up, add a Claude API key, describe your API in one sentence, 
 For callers: send an HTTP request with an X-Payment header containing a base64-encoded payment proof. No accounts, no API keys. If no payment header is sent, Cast returns HTTP 402 with the accepted chains, amounts, and recipient addresses.
 
 ---
-
-## AUDD on Solana
-
-AUDD is Australia's fully-backed digital dollar stablecoin, issued as an SPL token on Solana. Cast uses AUDD as its primary settlement asset — Solana's sub-cent fees make $0.001 per-call payments viable, and AUDD gives creators AUD-denominated revenue without FX conversion.
-
 **What we built:**
 
 SolanaVerifier verifies payments by fetching the confirmed transaction via RPC and checking SPL token balance deltas for the AUDD mint. Works with plain SPL Transfer, TransferChecked, or CPI transfers.
