@@ -1,0 +1,46 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: #2a2a3a transparent;
+  }
+  ::selection {
+    background: #6b54f740;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-cast-600 hover:bg-cast-500 text-white px-5 py-2.5 rounded-lg font-medium transition-all duration-200 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  .btn-secondary {
+    @apply bg-surface-3 hover:bg-surface-4 text-gray-200 px-5 py-2.5 rounded-lg font-medium transition-all duration-200 border border-white/5;
+  }
+  .btn-ghost {
+    @apply hover:bg-white/5 text-gray-400 hover:text-white px-3 py-2 rounded-lg transition-all duration-200;
+  }
+  .input-field {
+    @apply bg-surface-2 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-cast-500/50 focus:ring-1 focus:ring-cast-500/30 transition-all;
+  }
+  .card {
+    @apply bg-surface-1 border border-white/5 rounded-xl;
+  }
+  .badge {
+    @apply inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium;
+  }
+  .badge-green {
+    @apply badge bg-emerald-500/15 text-emerald-400;
+  }
+  .badge-blue {
+    @apply badge bg-blue-500/15 text-blue-400;
+  }
+  .badge-purple {
+    @apply badge bg-cast-500/15 text-cast-400;
+  }
+  .badge-yellow {
+    @apply badge bg-amber-500/15 text-amber-400;
+  }
+}

@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  cast:
+    image: cast:latest
+    build: .
+    container_name: cast
+    restart: unless-stopped
+    ports:
+      - "3001:3001"
+    environment:
+      NODE_ENV: production
+      PORT: 3001
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET is required}
+      DB_PATH: /app/backend/data/cast.db
+      SOLANA_NETWORK: ${SOLANA_NETWORK:-devnet}
+      SOLANA_RPC_URL: ${SOLANA_RPC_URL:-https://api.devnet.solana.com}
+      SOLANA_COMMITMENT: ${SOLANA_COMMITMENT:-confirmed}
+      SOLANA_AUDD_MINT: ${SOLANA_AUDD_MINT:-}
+      SOLANA_AUDD_DECIMALS: ${SOLANA_AUDD_DECIMALS:-6}
+      SOLANA_RECIPIENT_ADDRESS: ${SOLANA_RECIPIENT_ADDRESS:-}
+      SOLANA_SIGNER_SECRET: ${SOLANA_SIGNER_SECRET:-}
+      SOLANA_EXPLORER_URL: ${SOLANA_EXPLORER_URL:-https://explorer.solana.com}
+      BASE_RPC_URL: ${BASE_RPC_URL:-https://mainnet.base.org}
+      BASE_RECIPIENT_ADDRESS: ${BASE_RECIPIENT_ADDRESS:-}
+      CORS_ORIGIN: ${CORS_ORIGIN:-*}
+    volumes:
+      - cast-data:/app/backend/data
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3001/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+volumes:
+  cast-data:
+    driver: local
