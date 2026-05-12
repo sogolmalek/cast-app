@@ -36,7 +36,7 @@ export const api = {
   signup: (body) => request('/auth/signup', { method: 'POST', body }),
   login: (body) => request('/auth/login', { method: 'POST', body }),
   me: () => request('/auth/me'),
-  saveClaudeKey: (apiKey, provider, model) => request('/auth/claude-key', { method: 'PUT', body: { apiKey, provider, model } }),
+saveClaudeKey: (apiKey, provider, model) => request('/auth/claude-key', { method: 'PUT', body: { apiKey, provider, model } }),
   deleteClaudeKey: () => request('/auth/claude-key', { method: 'DELETE' }),
   getProviders: () => request('/auth/providers'),
 
