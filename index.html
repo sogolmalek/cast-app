@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cast × Nosana — GPU Compute for AI Agents</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #08080d; --bg2: #0e0e16; --bg3: #16161f;
+  --surface: #1a1a28; --border: #252538;
+  --text: #d8d8ee; --dim: #6e6e8a; --muted: #3e3e56;
+  --green: #22c55e; --red: #f43f5e; --amber: #f59e0b;
+  --blue: #3b82f6; --purple: #8b5cf6; --nosana: #00d4aa;
+  --cast: #f59e0b;
+  --mono: 'JetBrains Mono', monospace;
+  --sans: 'Space Grotesk', sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh}
+
+.hdr{padding:28px 36px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.hdr-left{display:flex;align-items:center;gap:14px}
+.hdr-mark{width:36px;height:36px;border-radius:9px;background:linear-gradient(135deg,var(--cast),var(--nosana));display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-weight:700;font-size:13px;color:var(--bg)}
+.hdr-t{font-weight:700;font-size:18px;letter-spacing:-0.02em}
+.hdr-t span{color:var(--dim);font-weight:400}
+.hdr-badge{font-family:var(--mono);font-size:10px;padding:5px 12px;border-radius:100px;background:rgba(34,197,94,.12);color:var(--green);border:1px solid rgba(34,197,94,.2)}
+
+.hero{padding:56px 36px 40px;text-align:center}
+.hero h1{font-size:42px;font-weight:700;letter-spacing:-0.03em;line-height:1.12;margin-bottom:16px}
+.hero h1 .a{color:var(--cast)} .hero h1 .b{color:var(--nosana)}
+.hero p{font-size:16px;color:var(--dim);max-width:620px;margin:0 auto;line-height:1.6}
+
+.tabs{display:flex;justify-content:center;gap:3px;background:var(--bg2);border-radius:10px;padding:3px;margin:32px auto 40px;width:fit-content}
+.tab{font-family:var(--mono);font-size:12px;font-weight:500;padding:9px 20px;border-radius:8px;cursor:pointer;color:var(--dim);border:none;background:none;transition:.2s}
+.tab:hover{color:var(--text)} .tab.active{background:var(--surface);color:var(--text);box-shadow:0 2px 8px rgba(0,0,0,.4)}
+
+.sec{display:none;padding:0 36px 60px} .sec.active{display:block}
+
+/* COMPARE */
+.cmp{display:grid;grid-template-columns:1fr 48px 1fr;max-width:1000px;margin:0 auto}
+.cmp-col{padding:28px;border-radius:14px}
+.cmp-col.bad{background:rgba(244,63,94,.06);border:1px solid rgba(244,63,94,.12)}
+.cmp-col.good{background:rgba(34,197,94,.06);border:1px solid rgba(34,197,94,.12)}
+.cmp-div{display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:12px;color:var(--muted)}
+.cmp-lbl{font-family:var(--mono);font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.1em;margin-bottom:16px}
+.cmp-lbl.r{color:var(--red)} .cmp-lbl.g{color:var(--green)}
+.steps{list-style:none}
+.stp{display:flex;gap:10px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.03);align-items:flex-start}
+.stp:last-child{border:none}
+.stp-n{font-family:var(--mono);font-size:10px;font-weight:600;width:22px;height:22px;border-radius:5px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.bad .stp-n{background:rgba(244,63,94,.12);color:var(--red)} .good .stp-n{background:rgba(34,197,94,.12);color:var(--green)}
+.stp-txt{font-size:13px;line-height:1.5;color:var(--dim)} .stp-txt strong{color:var(--text);font-weight:500}
+.stp-pain{font-family:var(--mono);font-size:10px;color:rgba(244,63,94,.6);margin-top:3px}
+.cmp-sum{margin-top:20px;padding:14px;border-radius:8px;font-family:var(--mono);font-size:12px;text-align:center}
+.bad .cmp-sum{background:rgba(244,63,94,.06);color:var(--red)}
+.good .cmp-sum{background:rgba(34,197,94,.06);color:var(--green)}
+
+/* ARCH */
+.arch{max-width:740px;margin:0 auto}
+.a-node{display:flex;gap:0;margin-bottom:2px}
+.a-lc{width:52px;display:flex;flex-direction:column;align-items:center}
+.a-dot{width:12px;height:12px;border-radius:50%;flex-shrink:0;z-index:1;margin-top:18px}
+.a-dot.cast{background:var(--cast);box-shadow:0 0 10px rgba(245,158,11,.4)}
+.a-dot.nos{background:var(--nosana);box-shadow:0 0 10px rgba(0,212,170,.4)}
+.a-dot.ag{background:var(--blue);box-shadow:0 0 10px rgba(59,130,246,.4)}
+.a-dot.ch{background:var(--purple);box-shadow:0 0 10px rgba(139,92,246,.4)}
+.a-wire{width:2px;flex:1;margin:2px 0;background:linear-gradient(to bottom,var(--border),rgba(37,37,56,.3))}
+.a-card{flex:1;padding:18px 22px;border-radius:11px;background:var(--surface);border:1px solid var(--border);margin:3px 0}
+.a-card-l{font-family:var(--mono);font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;margin-bottom:5px}
+.a-card-l.cast{color:var(--cast)} .a-card-l.nos{color:var(--nosana)} .a-card-l.ag{color:var(--blue)} .a-card-l.ch{color:var(--purple)}
+.a-card-t{font-weight:600;font-size:14px;margin-bottom:3px}
+.a-card-d{font-size:12px;color:var(--dim);line-height:1.5}
+.a-card code{font-family:var(--mono);font-size:11px;background:rgba(255,255,255,.05);padding:1px 5px;border-radius:3px}
+
+/* DEMO */
+.demo{max-width:1100px;margin:0 auto}
+.demo-scn{display:flex;gap:10px;margin-bottom:16px;justify-content:center;flex-wrap:wrap}
+.scn-btn{font-family:var(--mono);font-size:11px;padding:7px 14px;border-radius:7px;cursor:pointer;background:var(--bg3);color:var(--dim);border:1px solid var(--border);transition:.2s}
+.scn-btn:hover{border-color:var(--cast);color:var(--cast)}
+.scn-btn.active{background:rgba(245,158,11,.08);border-color:var(--cast);color:var(--cast)}
+.demo-split{display:grid;grid-template-columns:1fr 1fr;gap:16px;min-height:520px}
+.term{background:var(--bg2);border:1px solid var(--border);border-radius:12px;overflow:hidden;display:flex;flex-direction:column}
+.term-bar{display:flex;align-items:center;gap:7px;padding:10px 14px;background:var(--bg3);border-bottom:1px solid var(--border)}
+.tdot{width:9px;height:9px;border-radius:50%} .tdot.r{background:#f43f5e} .tdot.y{background:#f59e0b} .tdot.g{background:#22c55e}
+.term-title{font-family:var(--mono);font-size:11px;color:var(--dim);margin-left:6px}
+.term-body{padding:16px;flex:1;font-family:var(--mono);font-size:11.5px;line-height:1.7;overflow-y:auto;max-height:480px}
+.tl{margin-bottom:1px;opacity:0;animation:fi .25s forwards}
+@keyframes fi{to{opacity:1}}
+
+.viz{background:var(--bg2);border:1px solid var(--border);border-radius:12px;overflow:hidden;display:flex;flex-direction:column}
+.viz-bar{display:flex;align-items:center;gap:7px;padding:10px 14px;background:var(--bg3);border-bottom:1px solid var(--border)}
+.viz-title{font-family:var(--mono);font-size:11px;color:var(--dim);margin-left:6px}
+.viz-body{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;position:relative;overflow:hidden}
+.viz-ph{text-align:center;color:var(--muted);font-family:var(--mono);font-size:12px}
+.viz-ph .icon{font-size:40px;margin-bottom:12px;opacity:.4}
+
+/* Progress overlay */
+.prog-ov{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(8,8,13,.88);z-index:10;flex-direction:column;gap:12px}
+.prog-ring{width:80px;height:80px}
+.prog-ring circle{fill:none;stroke-width:4;stroke-linecap:round}
+.prog-ring .bg{stroke:var(--border)} .prog-ring .fg{stroke:var(--nosana);stroke-dasharray:226;stroke-dashoffset:226;transition:stroke-dashoffset .3s}
+.prog-pct{font-family:var(--mono);font-size:13px;color:var(--nosana)}
+.prog-lbl{font-family:var(--mono);font-size:11px;color:var(--dim)}
+
+/* Whisper */
+#whisperOut{display:none;width:100%;height:100%;flex-direction:column}
+.wave-cv{width:100%;height:120px;border-radius:8px;background:var(--bg);margin-bottom:12px;flex-shrink:0}
+.trans-box{flex:1;overflow-y:auto;padding:12px;background:var(--bg);border-radius:8px;border:1px solid var(--border)}
+.tr-seg{display:flex;gap:10px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.03);opacity:0;transition:opacity .4s}
+.tr-seg.show{opacity:1}
+.tr-ts{font-family:var(--mono);font-size:10px;color:var(--nosana);flex-shrink:0;min-width:46px;padding-top:2px}
+.tr-txt{font-size:12px;color:var(--text);line-height:1.5}
+
+/* SDXL */
+#sdxlOut{display:none;width:100%;height:100%;flex-direction:column;align-items:center;justify-content:center}
+.img-cv{border-radius:10px;background:var(--bg);border:1px solid var(--border)}
+.img-meta{margin-top:12px;font-family:var(--mono);font-size:10px;color:var(--dim);text-align:center;line-height:1.6}
+
+/* Embeddings */
+#embedOut{display:none;width:100%;height:100%;flex-direction:column}
+.scatter-cv{width:100%;flex:1;min-height:250px;border-radius:8px;background:var(--bg)}
+.cl-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.cl-card{padding:10px 12px;border-radius:8px;background:var(--bg);border:1px solid var(--border)}
+.cl-label{font-family:var(--mono);font-size:9px;text-transform:uppercase;letter-spacing:.08em;margin-bottom:2px}
+.cl-val{font-size:16px;font-weight:700}
+
+.demo-ctrls{display:flex;gap:10px;margin-top:16px;justify-content:center}
+.btn{font-family:var(--mono);font-size:12px;font-weight:600;padding:10px 24px;border-radius:9px;cursor:pointer;border:none;transition:.2s}
+.btn-p{background:linear-gradient(135deg,var(--cast),var(--nosana));color:var(--bg)}
+.btn-p:hover{transform:translateY(-1px);box-shadow:0 4px 16px rgba(245,158,11,.3)}
+.btn-p:disabled{opacity:.35;cursor:not-allowed;transform:none;box-shadow:none}
+.btn-s{background:var(--surface);color:var(--dim);border:1px solid var(--border)}
+
+/* SPECS */
+.specs{max-width:860px;margin:0 auto;display:grid;gap:12px}
+.sp-row{display:grid;grid-template-columns:180px 1fr 1fr;gap:1px;background:var(--border);border-radius:10px;overflow:hidden}
+.sp-row.hd>div{background:var(--bg3);font-weight:600;font-size:11px;font-family:var(--mono);text-transform:uppercase;letter-spacing:.05em}
+.sp-row>div{background:var(--surface);padding:14px 18px;font-size:13px}
+.sp-row>div:first-child{color:var(--text);font-weight:500}
+.sp-row>div:nth-child(2){color:var(--red);font-family:var(--mono);font-size:12px}
+.sp-row>div:nth-child(3){color:var(--green);font-family:var(--mono);font-size:12px}
+
+.foot{padding:32px 36px;border-top:1px solid var(--border);text-align:center;color:var(--muted);font-size:12px}
+.foot a{color:var(--cast);text-decoration:none}
+
+@media(max-width:768px){
+  .hdr,.hero,.sec{padding-left:16px;padding-right:16px}
+  .hero h1{font-size:28px}
+  .cmp{grid-template-columns:1fr}
+  .cmp-div{padding:10px 0}
+  .demo-split{grid-template-columns:1fr}
+  .sp-row{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div class="hdr-left">
+    <div class="hdr-mark">C×N</div>
+    <div class="hdr-t">Cast <span>× Nosana</span></div>
+  </div>
+  <div class="hdr-badge">● Integration Demo</div>
+</div>
+
+<div class="hero">
+  <h1>GPU Compute for Agents.<br><span class="a">Zero</span> Friction. <span class="b">Zero</span> Accounts.</h1>
+  <p>Cast eliminates every onboarding step between an AI agent and Nosana's decentralized GPU grid. No API keys, no credit purchases — just HTTP + micropayment + compute.</p>
+</div>
+
+<div class="tabs">
+  <button class="tab active" onclick="showSec('compare',this)">The Problem</button>
+  <button class="tab" onclick="showSec('arch',this)">Architecture</button>
+  <button class="tab" onclick="showSec('demo',this)">Live Simulation</button>
+  <button class="tab" onclick="showSec('specs',this)">Specs</button>
+</div>
+
+<!-- COMPARE -->
+<div id="s-compare" class="sec active">
+  <div class="cmp">
+    <div class="cmp-col bad">
+      <div class="cmp-lbl r">⛔ Without Cast</div>
+      <ul class="steps">
+        <li class="stp"><div class="stp-n">1</div><div><div class="stp-txt"><strong>Create Account</strong> — Sign up, verify email</div><div class="stp-pain">↳ Human step. Agent can't do this.</div></div></li>
+        <li class="stp"><div class="stp-n">2</div><div><div class="stp-txt"><strong>Generate API Key</strong> — Dashboard → create key</div><div class="stp-pain">↳ Key management per instance.</div></div></li>
+        <li class="stp"><div class="stp-n">3</div><div><div class="stp-txt"><strong>Purchase Credits</strong> — NOS tokens or card</div><div class="stp-pain">↳ Requires exchange account.</div></div></li>
+        <li class="stp"><div class="stp-n">4</div><div><div class="stp-txt"><strong>Create Deployment</strong> — Job def, GPU market, replicas</div><div class="stp-pain">↳ Config overhead per model.</div></div></li>
+        <li class="stp"><div class="stp-n">5</div><div><div class="stp-txt"><strong>Monitor Health</strong> — Poll status, handle failures</div><div class="stp-pain">↳ Agent implements failover.</div></div></li>
+        <li class="stp"><div class="stp-n">6</div><div><div class="stp-txt"><strong>Manage Billing</strong> — Track balance, top up</div><div class="stp-pain">↳ Human intervention loop.</div></div></li>
+      </ul>
+      <div class="cmp-sum">6 steps · 3 human interventions · ~30 min</div>
+    </div>
+    <div class="cmp-div">vs</div>
+    <div class="cmp-col good">
+      <div class="cmp-lbl g">✓ With Cast (x402)</div>
+      <ul class="steps">
+        <li class="stp"><div class="stp-n">1</div><div><div class="stp-txt"><strong>POST endpoint</strong> — Agent sends HTTP request</div></div></li>
+        <li class="stp"><div class="stp-n">2</div><div><div class="stp-txt"><strong>Receive 402</strong> — Cast returns payment manifest</div></div></li>
+        <li class="stp"><div class="stp-n">3</div><div><div class="stp-txt"><strong>Pay $0.005</strong> — Micropayment from agent wallet</div></div></li>
+        <li class="stp"><div class="stp-n">4</div><div><div class="stp-txt"><strong>Get result</strong> — Cast → Nosana GPU → response</div></div></li>
+      </ul>
+      <div class="cmp-sum">4 steps · 0 human · ~8 seconds</div>
+    </div>
+  </div>
+</div>
+
+<!-- ARCH -->
+<div id="s-arch" class="sec">
+  <div class="arch">
+    <div class="a-node"><div class="a-lc"><div class="a-dot ag"></div><div class="a-wire"></div></div>
+      <div class="a-card"><div class="a-card-l ag">AI Agent</div><div class="a-card-t">POST /cast/whisper-transcribe</div><div class="a-card-d">No API key, no auth — just the payload.</div></div></div>
+    <div class="a-node"><div class="a-lc"><div class="a-dot cast"></div><div class="a-wire"></div></div>
+      <div class="a-card"><div class="a-card-l cast">Cast x402 Gateway</div><div class="a-card-t">HTTP 402 Payment Required</div><div class="a-card-d">Returns manifest: <code>$0.005 USDC → Solana</code></div></div></div>
+    <div class="a-node"><div class="a-lc"><div class="a-dot ch"></div><div class="a-wire"></div></div>
+      <div class="a-card"><div class="a-card-l ch">Solana</div><div class="a-card-t">SPL Transfer — ~400ms</div><div class="a-card-d">Agent signs micropayment. Confirmed &lt;1s. Cast verifies on-chain.</div></div></div>
+    <div class="a-node"><div class="a-lc"><div class="a-dot cast"></div><div class="a-wire"></div></div>
+      <div class="a-card"><div class="a-card-l cast">Cast Router</div><div class="a-card-t">Payment ✓ → Forward to Nosana</div><div class="a-card-d">Maps <code>tx → session</code>, routes to deployment. Handles failover.</div></div></div>
+    <div class="a-node"><div class="a-lc"><div class="a-dot nos"></div><div class="a-wire"></div></div>
+      <div class="a-card"><div class="a-card-l nos">Nosana GPU Grid</div><div class="a-card-t">Decentralized Inference</div><div class="a-card-d">Model runs on community GPU. Result returns through Cast.</div></div></div>
+    <div class="a-node"><div class="a-lc"><div class="a-dot ag"></div></div>
+      <div class="a-card"><div class="a-card-l ag">AI Agent</div><div class="a-card-t">200 OK — JSON Response</div><div class="a-card-d">Cost: <code>$0.005</code> · Time: <code>~8s</code> · Accounts: <code>0</code></div></div></div>
+  </div>
+</div>
+
+<!-- DEMO -->
+<div id="s-demo" class="sec">
+  <div class="demo">
+    <div class="demo-scn">
+      <button class="scn-btn active" data-s="whisper" onclick="pickScn(this)">🎙 Whisper</button>
+      <button class="scn-btn" data-s="sdxl" onclick="pickScn(this)">🎨 SDXL</button>
+      <button class="scn-btn" data-s="embeddings" onclick="pickScn(this)">📐 Embeddings</button>
+    </div>
+    <div class="demo-split">
+      <div class="term">
+        <div class="term-bar"><div class="tdot r"></div><div class="tdot y"></div><div class="tdot g"></div><span class="term-title">agent-runtime — x402 flow</span></div>
+        <div class="term-body" id="term"></div>
+      </div>
+      <div class="viz">
+        <div class="viz-bar"><div class="tdot r"></div><div class="tdot y"></div><div class="tdot g"></div><span class="viz-title" id="vizTitle">gpu-output — awaiting inference</span></div>
+        <div class="viz-body" id="vizBody">
+          <div class="viz-ph" id="vizPH"><div class="icon">◈</div>Run a scenario to see<br>GPU inference output</div>
+          <div class="prog-ov" id="progOv" style="display:none">
+            <svg class="prog-ring" viewBox="0 0 80 80"><circle class="bg" cx="40" cy="40" r="36"/><circle class="fg" id="progC" cx="40" cy="40" r="36"/></svg>
+            <div class="prog-pct" id="progPct">0%</div>
+            <div class="prog-lbl" id="progLbl">Processing on Nosana GPU...</div>
+          </div>
+          <div id="whisperOut">
+            <canvas class="wave-cv" id="waveCv"></canvas>
+            <div class="trans-box" id="transBox"></div>
+          </div>
+          <div id="sdxlOut">
+            <canvas class="img-cv" id="imgCv" width="300" height="300"></canvas>
+            <div class="img-meta" id="imgMeta"></div>
+          </div>
+          <div id="embedOut">
+            <canvas class="scatter-cv" id="scatterCv"></canvas>
+            <div class="cl-grid" id="clGrid"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="demo-ctrls">
+      <button class="btn btn-p" id="runBtn" onclick="runDemo()">▶ Run Agent Flow</button>
+      <button class="btn btn-s" onclick="resetAll()">Reset</button>
+    </div>
+  </div>
+</div>
+
+<!-- SPECS -->
+<div id="s-specs" class="sec">
+  <div class="specs">
+    <div class="sp-row hd"><div>Component</div><div>Without Cast</div><div>With Cast (x402)</div></div>
+    <div class="sp-row"><div>Authentication</div><div>API key + account</div><div>None — payment = auth</div></div>
+    <div class="sp-row"><div>Billing</div><div>Pre-purchased credits</div><div>Per-call micropayment</div></div>
+    <div class="sp-row"><div>Agent Onboarding</div><div>~30 min (human)</div><div>0 min — instant</div></div>
+    <div class="sp-row"><div>Node Health</div><div>Agent polls + failover</div><div>Cast handles routing</div></div>
+    <div class="sp-row"><div>Payment Rail</div><div>Card → NOS → deposit</div><div>Solana SPL — sub-cent, &lt;1s</div></div>
+    <div class="sp-row"><div>Scaling</div><div>Manual replica mgmt</div><div>Auto-route across markets</div></div>
+    <div class="sp-row"><div>Cost / Inference</div><div>Credit-based (opaque)</div><div>$0.001–0.01 (transparent)</div></div>
+    <div class="sp-row"><div>Multi-Agent</div><div>Each needs key + credits</div><div>Any wallet can pay</div></div>
+  </div>
+</div>
+
+<div class="foot"><strong>Cast</strong> — Instant API monetization for the agent economy · <a href="https://github.com/sogolmalek/cast-app">github.com/sogolmalek/cast-app</a></div>
+
+<script>
+function showSec(id, el) {
+  document.querySelectorAll('.sec').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('s-'+id).classList.add('active');
+  el.classList.add('active');
+}
+
+let curScn = 'whisper';
+function pickScn(el) {
+  document.querySelectorAll('.scn-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  curScn = el.dataset.s;
+  resetAll();
+}
+
+const term = document.getElementById('term');
+let tD = 0;
+function tL(html, ex=0) {
+  tD += 55 + ex;
+  const d = document.createElement('div');
+  d.className = 'tl'; d.innerHTML = html;
+  d.style.animationDelay = tD + 'ms';
+  term.appendChild(d);
+  term.scrollTop = term.scrollHeight;
+}
+function clrT() { term.innerHTML = ''; tD = 0; }
+
+function resetAll() {
+  clrT();
+  ['whisperOut','sdxlOut','embedOut','progOv'].forEach(id => document.getElementById(id).style.display = 'none');
+  document.getElementById('vizPH').style.display = '';
+  document.getElementById('vizTitle').textContent = 'gpu-output — awaiting inference';
+  document.getElementById('runBtn').disabled = false;
+}
+
+function showProg(label) {
+  document.getElementById('vizPH').style.display = 'none';
+  const ov = document.getElementById('progOv'); ov.style.display = 'flex';
+  document.getElementById('progPct').textContent = '0%';
+  document.getElementById('progLbl').textContent = label;
+  document.getElementById('progC').style.strokeDashoffset = 226;
+}
+function setProg(pct) {
+  document.getElementById('progC').style.strokeDashoffset = 226 - (226 * pct / 100);
+  document.getElementById('progPct').textContent = Math.round(pct) + '%';
+}
+function hideProg() { document.getElementById('progOv').style.display = 'none'; }
+
+// ═══ WHISPER: Animated waveform + streaming transcript ═══
+function renderWhisper() {
+  const out = document.getElementById('whisperOut'); out.style.display = 'flex';
+  document.getElementById('vizTitle').textContent = 'gpu-output — Whisper Large v3';
+  const cv = document.getElementById('waveCv');
+  const ctx = cv.getContext('2d');
+  cv.width = cv.offsetWidth * 2; cv.height = 240;
+  ctx.clearRect(0, 0, cv.width, cv.height);
+  const W = cv.width, H = cv.height, mid = H / 2, bars = 100, bw = (W - bars) / bars;
+  const amps = [];
+  for (let i = 0; i < bars; i++) {
+    const t = i / bars;
+    const sp = Math.sin(t*18)*.3 + Math.sin(t*7.3)*.2 + Math.sin(t*31)*.15;
+    const env = 0.3 + 0.7 * Math.pow(Math.sin(t * Math.PI), 0.3);
+    const pause = Math.sin(t * 4.7) > 0.7 ? 0.1 : 1;
+    amps.push(Math.abs(sp * env * pause) + 0.03);
+  }
+  let bi = 0;
+  const iv = setInterval(() => {
+    if (bi >= bars) { clearInterval(iv); return; }
+    const n = Math.min(3, bars - bi);
+    for (let b = 0; b < n; b++) {
+      const i = bi + b, x = i * (bw + 1), a = amps[i] * mid * 0.8;
+      const g = ctx.createLinearGradient(0, mid - a, 0, mid + a);
+      g.addColorStop(0, 'rgba(0,212,170,0.85)');
+      g.addColorStop(0.5, 'rgba(0,212,170,0.4)');
+      g.addColorStop(1, 'rgba(0,212,170,0.85)');
+      ctx.fillStyle = g;
+      ctx.beginPath();
+      ctx.roundRect(x, mid - a, bw, a * 2, 2);
+      ctx.fill();
+    }
+    bi += n;
+  }, 25);
+
+  const segs = [
+    { ts:'00:00', txt:'Good morning everyone. Let\'s start with the quarterly review.' },
+    { ts:'00:12', txt:'Revenue came in at $4.2 million — 12% above our forecast for the period.' },
+    { ts:'00:28', txt:'The primary driver was the enterprise segment, specifically three new contracts signed in April.' },
+    { ts:'00:41', txt:'On the cost side, infrastructure spend increased by 8%, but that was planned for the migration.' },
+    { ts:'00:55', txt:'Cash position is strong. We have 18 months of runway at current burn rate.' },
+    { ts:'01:08', txt:'One concern: SMB churn increased to 4.2% from 3.1% last quarter.' },
+    { ts:'01:22', txt:'I\'d like to allocate resources to a retention initiative. Sarah, can you draft a proposal?' },
+    { ts:'01:35', txt:'Next — the board wants an updated projection model by end of month. Masoud, that\'s on you.' },
+  ];
+  const box = document.getElementById('transBox'); box.innerHTML = '';
+  segs.forEach((s, i) => {
+    const el = document.createElement('div'); el.className = 'tr-seg';
+    el.innerHTML = `<div class="tr-ts">${s.ts}</div><div class="tr-txt">${s.txt}</div>`;
+    box.appendChild(el);
+    setTimeout(() => { el.classList.add('show'); box.scrollTop = box.scrollHeight; }, 500 + i * 420);
+  });
+}
+
+// ═══ SDXL: Procedural canvas painting with progressive reveal ═══
+function renderSDXL() {
+  const out = document.getElementById('sdxlOut'); out.style.display = 'flex';
+  document.getElementById('vizTitle').textContent = 'gpu-output — SDXL Base 1.0';
+  const cv = document.getElementById('imgCv');
+  const ctx = cv.getContext('2d');
+  const S = 300; cv.width = S; cv.height = S;
+
+  // Paint to offscreen
+  const off = document.createElement('canvas'); off.width = S; off.height = S;
+  const ox = off.getContext('2d');
+
+  // Sky
+  const sky = ox.createLinearGradient(0, 0, 0, S * 0.55);
+  sky.addColorStop(0, '#0d1b3e'); sky.addColorStop(0.3, '#1a2755');
+  sky.addColorStop(0.55, '#c44e2b'); sky.addColorStop(0.8, '#e8943a'); sky.addColorStop(1, '#f5c862');
+  ox.fillStyle = sky; ox.fillRect(0, 0, S, S * 0.55);
+
+  // Stars
+  for (let i = 0; i < 50; i++) {
+    ox.fillStyle = `rgba(255,255,240,${Math.random()*.6+.2})`;
+    ox.beginPath(); ox.arc(Math.random()*S, Math.random()*S*.33, Math.random()*1.3+.3, 0, Math.PI*2); ox.fill();
+  }
+
+  // Sun glow
+  const sg = ox.createRadialGradient(S*.65, S*.41, 4, S*.65, S*.41, 45);
+  sg.addColorStop(0, 'rgba(255,220,150,1)'); sg.addColorStop(.4, 'rgba(255,180,80,.5)'); sg.addColorStop(1, 'rgba(255,140,50,0)');
+  ox.fillStyle = sg; ox.beginPath(); ox.arc(S*.65, S*.41, 45, 0, Math.PI*2); ox.fill();
+
+  // Clouds
+  [[75,S*.34,28],[210,S*.29,22],[150,S*.37,32]].forEach(([cx,cy,w]) => {
+    ox.fillStyle = 'rgba(255,200,160,0.13)';
+    for (let i=0;i<5;i++){ox.beginPath();ox.ellipse(cx+(i-2)*w*.35,cy+Math.sin(i)*3,w*.4,6,0,0,Math.PI*2);ox.fill();}
+  });
+
+  // Void below
+  const vg = ox.createLinearGradient(0, S*.6, 0, S);
+  vg.addColorStop(0, 'rgba(8,8,13,0)'); vg.addColorStop(.5, 'rgba(8,8,13,0.6)'); vg.addColorStop(1, '#08080d');
+  ox.fillStyle = vg; ox.fillRect(0, S*.6, S, S*.4);
+
+  const iy = S * 0.5;
+  // Rock underside
+  ox.fillStyle = '#3d2b1a';
+  ox.beginPath(); ox.moveTo(70,iy);
+  ox.quadraticCurveTo(90,iy+65,130,iy+90);
+  ox.quadraticCurveTo(170,iy+100,195,iy+70);
+  ox.quadraticCurveTo(220,iy+40,230,iy);
+  ox.closePath(); ox.fill();
+
+  ox.fillStyle = '#5a3d28';
+  ox.beginPath(); ox.moveTo(75,iy+8);
+  ox.quadraticCurveTo(110,iy+50,145,iy+65);
+  ox.quadraticCurveTo(180,iy+70,200,iy+45);
+  ox.quadraticCurveTo(225,iy+18,228,iy);
+  ox.lineTo(75,iy); ox.closePath(); ox.fill();
+
+  // Grass
+  const gg = ox.createLinearGradient(0,iy-8,0,iy+4);
+  gg.addColorStop(0,'#4a8c3f'); gg.addColorStop(1,'#2d5a28');
+  ox.fillStyle = gg; ox.beginPath(); ox.ellipse(150,iy,78,13,0,0,Math.PI*2); ox.fill();
+
+  // Houses
+  [[120,iy-7,13,15,'#8b3a3a','#d4a574'],[142,iy-9,11,13,'#3a5a8b','#c4b494'],[164,iy-6,14,17,'#6b4a3a','#dab88c'],[186,iy-8,10,12,'#4a6b3a','#c4a474']].forEach(([x,y,w,h,rc,wc]) => {
+    ox.fillStyle = wc; ox.fillRect(x-w/2,y-h,w,h);
+    ox.fillStyle = rc; ox.beginPath(); ox.moveTo(x-w/2-2,y-h); ox.lineTo(x,y-h-w*.55); ox.lineTo(x+w/2+2,y-h); ox.closePath(); ox.fill();
+    ox.fillStyle = 'rgba(255,220,100,0.65)'; ox.fillRect(x-2,y-h+3,4,4);
+  });
+
+  // Trees
+  [[100,iy-4,28],[208,iy-5,24],[92,iy-2,20]].forEach(([x,y,h]) => {
+    ox.fillStyle = '#5a3d2a'; ox.fillRect(x-1.5,y-h*.4,3,h*.4);
+    ox.fillStyle = '#2d6b28'; ox.beginPath(); ox.moveTo(x,y-h); ox.lineTo(x-h*.28,y-h*.35); ox.lineTo(x+h*.28,y-h*.35); ox.closePath(); ox.fill();
+    ox.fillStyle = '#3a8a34'; ox.beginPath(); ox.moveTo(x,y-h*.82); ox.lineTo(x-h*.22,y-h*.25); ox.lineTo(x+h*.22,y-h*.25); ox.closePath(); ox.fill();
+  });
+
+  // Waterfall
+  for (let i = 0; i < 22; i++) {
+    const wy = iy + i*3.5 + 4, wx = 147 + Math.sin(i*.8)*2.5;
+    ox.fillStyle = `rgba(120,200,255,${Math.max(.35 - i*.013, .04)})`;
+    ox.fillRect(wx-2, wy, 4, 2.5);
+    if (i > 14) { ox.fillStyle = 'rgba(180,220,255,0.04)'; ox.beginPath(); ox.arc(wx,wy,7+i*.4,0,Math.PI*2); ox.fill(); }
+  }
+
+  // Progressive scan-line reveal
+  ctx.fillStyle = '#08080d'; ctx.fillRect(0, 0, S, S);
+  let sy = 0;
+  const si = setInterval(() => {
+    if (sy >= S) { clearInterval(si); return; }
+    const ch = Math.min(3, S - sy);
+    ctx.drawImage(off, 0, sy, S, ch, 0, sy, S, ch);
+    ctx.fillStyle = 'rgba(0,212,170,0.1)';
+    ctx.fillRect(0, sy+ch-1, S, 2);
+    sy += ch;
+  }, 18);
+
+  document.getElementById('imgMeta').innerHTML =
+    `1024×1024 · 30 steps · seed: 8827134 · cfg: 7.5<br><span style="color:var(--nosana)">Rendered on Nosana RTX 4090</span>`;
+}
+
+// ═══ EMBEDDINGS: Animated scatter plot with clusters ═══
+function renderEmbeddings() {
+  const out = document.getElementById('embedOut'); out.style.display = 'flex';
+  document.getElementById('vizTitle').textContent = 'gpu-output — BGE-Large Embeddings';
+  const cv = document.getElementById('scatterCv');
+  const ctx = cv.getContext('2d');
+  cv.width = cv.offsetWidth * 2; cv.height = cv.offsetHeight * 2;
+  const W = cv.width, H = cv.height;
+  ctx.fillStyle = '#08080d'; ctx.fillRect(0, 0, W, H);
+
+  // Grid
+  ctx.strokeStyle = 'rgba(255,255,255,0.03)'; ctx.lineWidth = 1;
+  for (let x=0;x<W;x+=40){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
+  for (let y=0;y<H;y+=40){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
+
+  // Axis labels
+  ctx.font = '20px "Space Grotesk"'; ctx.fillStyle = 'rgba(255,255,255,0.08)';
+  ctx.fillText('t-SNE dim 1 →', W*.4, H-10);
+  ctx.save(); ctx.rotate(-Math.PI/2); ctx.fillText('t-SNE dim 2 →', -H*.6, 18); ctx.restore();
+
+  const cls = [
+    { label:'Financial', color:'#f59e0b', cx:.22, cy:.28, n:14 },
+    { label:'Operations', color:'#3b82f6', cx:.72, cy:.23, n:12 },
+    { label:'Supply Chain', color:'#22c55e', cx:.32, cy:.72, n:13 },
+    { label:'Legal', color:'#8b5cf6', cx:.78, cy:.72, n:11 },
+  ];
+  const pts = [];
+  cls.forEach(c => {
+    for (let i=0; i<c.n; i++) {
+      const a = Math.random()*Math.PI*2, d = (Math.random()*.45+.12)*Math.min(W,H)*.14;
+      pts.push({ x:c.cx*W+Math.cos(a)*d, y:c.cy*H+Math.sin(a)*d, color:c.color, label:c.label });
+    }
+  });
+
+  // Animate
+  let pi = 0;
+  const piv = setInterval(() => {
+    if (pi >= pts.length) {
+      clearInterval(piv);
+      // Draw cluster labels + hull hints
+      setTimeout(() => {
+        cls.forEach(c => {
+          // Faint circle
+          ctx.strokeStyle = c.color + '25'; ctx.lineWidth = 1.5;
+          ctx.setLineDash([6,4]);
+          ctx.beginPath(); ctx.arc(c.cx*W, c.cy*H, Math.min(W,H)*.12, 0, Math.PI*2); ctx.stroke();
+          ctx.setLineDash([]);
+          // Label
+          ctx.font = '600 20px "Space Grotesk"'; ctx.fillStyle = c.color + 'cc';
+          ctx.fillText(c.label, c.cx*W - ctx.measureText(c.label).width/2, c.cy*H - Math.min(W,H)*.14);
+        });
+      }, 200);
+      return;
+    }
+    const batch = Math.min(2, pts.length - pi);
+    for (let b=0; b<batch; b++) {
+      const p = pts[pi+b];
+      // Glow
+      const gr = ctx.createRadialGradient(p.x,p.y,0,p.x,p.y,14);
+      gr.addColorStop(0, p.color+'30'); gr.addColorStop(1,'transparent');
+      ctx.fillStyle = gr; ctx.fillRect(p.x-14,p.y-14,28,28);
+      // Dot
+      ctx.fillStyle = p.color; ctx.beginPath(); ctx.arc(p.x,p.y,4.5,0,Math.PI*2); ctx.fill();
+      // Small white core
+      ctx.fillStyle = 'rgba(255,255,255,0.3)'; ctx.beginPath(); ctx.arc(p.x,p.y,1.5,0,Math.PI*2); ctx.fill();
+    }
+    pi += batch;
+  }, 70);
+
+  document.getElementById('clGrid').innerHTML = cls.map(c => `
+    <div class="cl-card">
+      <div class="cl-label" style="color:${c.color}">${c.label}</div>
+      <div class="cl-val" style="color:${c.color}">${c.n} <span style="font-size:11px;font-weight:400;color:var(--dim)">docs</span></div>
+    </div>`).join('');
+}
+
+
+// ═══ MAIN RUNNER ═══
+const SC = {
+  whisper: {
+    name:'Whisper Transcription', slug:'whisper-transcribe', desc:'Audio → Text (Whisper Large v3)',
+    price:'0.005', ps:'5000', input:'{ "audio_url": "s3://meetings/2026-05-17.mp3", "lang": "en" }',
+    model:'openai/whisper-large-v3', gpu:'RTX 4090', time:6200, render:renderWhisper,
+    result:{ status:"success", segments:142, duration_s:847, confidence:0.94 }
+  },
+  sdxl: {
+    name:'SDXL Image Gen', slug:'sdxl-generate', desc:'Prompt → Image (SDXL)',
+    price:'0.008', ps:'8000', input:'{ "prompt": "floating island, village, sunset", "size": "1024x1024" }',
+    model:'stabilityai/sdxl-base-1.0', gpu:'RTX 4090', time:4800, render:renderSDXL,
+    result:{ status:"success", width:1024, height:1024, seed:8827134, steps:30 }
+  },
+  embeddings: {
+    name:'Batch Embeddings', slug:'bge-embed-batch', desc:'Documents → Vectors (BGE-Large)',
+    price:'0.002', ps:'2000', input:'{ "texts": ["Risk assessment...", ...48 more], "model": "bge-large" }',
+    model:'BAAI/bge-large-en-v1.5', gpu:'RTX 3090', time:3400, render:renderEmbeddings,
+    result:{ status:"success", embeddings:50, dimensions:1024, tokens:28450 }
+  }
+};
+
+const sl = ms => new Promise(r => setTimeout(r, ms));
+
+async function runDemo() {
+  const btn = document.getElementById('runBtn'); btn.disabled = true;
+  resetAll(); await sl(80);
+  const s = SC[curScn];
+
+  tL(`<span style="color:var(--muted)">// ─── Cast × Nosana: ${s.name} ───</span>`);
+  tL(`<span style="color:var(--muted)">// ${s.desc}</span>`);
+  tL(''); await sl(250);
+
+  tL(`<span style="color:var(--green)">agent $</span> POST /cast/${s.slug}`);
+  tL(`<span style="color:var(--muted)">         No API key. No auth. Just payload.</span>`);
+  tL('');
+  tL(`<span style="color:var(--blue)">→</span> ${s.input}`);
+  tL(''); await sl(700);
+
+  tL(`<span style="color:var(--cast)">← CAST</span> <span style="color:var(--red)">HTTP 402 Payment Required</span>`);
+  tL(`<span style="color:var(--dim);padding-left:20px">chain: "solana", amount: "${s.ps}", currency: "USDC"</span>`);
+  tL(`<span style="color:var(--dim);padding-left:20px">recipient: "CastTreasury7xF...mNq"</span>`);
+  tL(''); await sl(500);
+
+  tL(`<span style="color:var(--purple)">◎ SOL</span> Signing micropayment...`); await sl(350);
+  tL(`<span style="color:var(--purple)">◎ SOL</span> Broadcasting...`); await sl(420);
+  tL(`<span style="color:var(--purple)">◎ SOL</span> <span style="color:var(--green)">Confirmed</span> 412ms — sig: 5Mhz9k...rT2v`);
+  tL(''); await sl(250);
+
+  tL(`<span style="color:var(--green)">agent $</span> POST /cast/${s.slug} <span style="color:var(--muted)">[X-Payment: ...]</span>`);
+  tL(`<span style="color:var(--cast)">← CAST</span> Payment verified ✓ — routing to Nosana`);
+  tL(''); await sl(350);
+
+  tL(`<span style="color:var(--nosana)">◈ NOSANA</span> Model: ${s.model}`);
+  tL(`<span style="color:var(--nosana)">◈ NOSANA</span> GPU: ${s.gpu}`);
+  tL(`<span style="color:var(--nosana)">◈ NOSANA</span> Processing...`);
+
+  // Progress ring
+  showProg(`${s.model.split('/').pop()} on ${s.gpu}...`);
+  const steps = 20, stepMs = s.time / steps;
+  for (let i=1; i<=steps; i++) {
+    await sl(stepMs);
+    setProg(i/steps*100);
+    if (i%5===0) tL(`<span style="color:var(--muted)">         [${'█'.repeat(i)}${'░'.repeat(steps-i)}] ${Math.round(i/steps*100)}%</span>`);
+  }
+
+  tL(`<span style="color:var(--nosana)">◈ NOSANA</span> <span style="color:var(--green)">Complete</span> — ${(s.time/1000).toFixed(1)}s`);
+  tL(''); await sl(150);
+
+  // Show visual output
+  hideProg();
+  s.render();
+
+  tL(`<span style="color:var(--green)">← 200 OK</span>`);
+  JSON.stringify(s.result,null,2).split('\n').forEach(l => tL(`<span style="color:var(--dim);padding-left:20px">${l}</span>`));
+  tL(''); await sl(300);
+
+  tL(`<span style="color:var(--muted)">// ─── Summary ───</span>`);
+  tL(`<span style="color:var(--muted)">//   Accounts: <span style="color:var(--green)">0</span>  │  Keys: <span style="color:var(--green)">0</span>  │  Human: <span style="color:var(--green)">0</span></span>`);
+  tL(`<span style="color:var(--muted)">//   Cost: <span style="color:var(--cast)">$${s.price}</span>  │  Rail: <span style="color:var(--purple)">Solana 412ms</span></span>`);
+  tL(`<span style="color:var(--muted)">//   GPU: <span style="color:var(--nosana)">Nosana decentralized grid</span></span>`);
+
+  btn.disabled = false;
+}
+</script>
+</body>
+</html>
